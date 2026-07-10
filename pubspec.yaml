@@ -1,0 +1,41 @@
+name: ripple
+description: Ripple — the official Koolbase sample app. Chat, powered by Koolbase.
+publish_to: "none"
+version: 2.4.0+892
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^2.5.1
+  go_router: ^14.2.0
+  image_picker: ^1.1.2
+  cached_network_image: ^3.3.1
+  intl: ^0.19.0
+  async: ^2.11.0
+  koolbase_flutter: ^9.3.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+  flutter_launcher_icons: ^0.14.1
+  flutter_native_splash: ^2.4.1
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/icon.png"
+  remove_alpha_ios: true
+
+flutter_native_splash:
+  color: "#0E7C7B"
+  image: assets/icon/splash_icon.png
+  color_dark: "#0E1514"
+  image_dark: assets/icon/splash_icon.png
+
+flutter:
+  uses-material-design: true
