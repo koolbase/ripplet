@@ -145,7 +145,12 @@ class ChatRepository {
     );
     final record = await Koolbase.db.insert(
       collection: _messages,
-      data: message.toJson(),
+      data: {
+        ...message.toJson(),
+        // Denormalized for the server-side blocking rule: the write is
+        // rejected when a blocks row exists for (recipient, sender).
+        'recipient_id': other.userId,
+      },
     );
     final preview = text.isNotEmpty ? text : '📷 Photo';
     await _upsertMember(
