@@ -1,13 +1,16 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
+import 'package:koolbase_flutter/koolbase_flutter.dart';
+import 'package:koolbase_flutter/src/code_push/vm_patch_bindings.dart' as vm;
+import 'package:ripple/main.dart';
 import '../../../core/constants.dart';
 import '../application/auth_controller.dart';
 
 class WelcomeScreen extends ConsumerStatefulWidget {
   const WelcomeScreen({super.key});
-
   @override
   ConsumerState<WelcomeScreen> createState() => _WelcomeScreenState();
 }
@@ -17,8 +20,27 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
   final _password = TextEditingController();
   bool _loading = false;
 
+  // Phase 8: the boot-apply in KoolbaseVmPatchClient.init() runs async and can
+  // land AFTER the first frame. Re-read rippleBuildTag() once a second for the
+  // first 15s so an OTA patch applied at boot becomes visible with ZERO taps.
+  Timer? _tagPoll;
+  int _polls = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _tagPoll = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted || ++_polls > 15) {
+        t.cancel();
+        return;
+      }
+      setState(() {}); // re-run build → re-read rippleBuildTag()
+    });
+  }
+
   @override
   void dispose() {
+    _tagPoll?.cancel();
     _email.dispose();
     _password.dispose();
     super.dispose();
@@ -42,10 +64,30 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
     }
   }
 
+  // Debug affordance only — the OTA loop is the mechanism. No asset, no apply.
+  Future<void> _debugRefresh() async {
+    final current = await Koolbase.vmPatch.currentPatch();
+    final fresh = Koolbase.vmPatch.appliedThisLaunch;
+    String bid = '';
+    try {
+      bid = vm.koolbaseBuildId();
+    } catch (_) {}
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('patch=$current new=$fresh bid=$bid')),
+    );
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _debugRefresh,
+        label: const Text('REFRESH'),
+        icon: const Icon(Icons.refresh),
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -68,6 +110,33 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                   color: scheme.primary,
                   fontWeight: FontWeight.bold,
                 ),
+              ),
+              Text(
+                AppConstants.tagline,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'build: ${rippleBuildTag()}',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              Builder(
+                builder: (context) {
+                  String bid = '';
+                  try {
+                    bid = vm.koolbaseBuildId();
+                  } catch (_) {}
+                  return Text(
+                    'bid: $bid',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: scheme.outline,
+                    ),
+                  );
+                },
               ),
               Text(
                 AppConstants.tagline,

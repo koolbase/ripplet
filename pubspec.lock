@@ -507,11 +507,10 @@ packages:
   koolbase_flutter:
     dependency: "direct main"
     description:
-      name: koolbase_flutter
-      sha256: "700a9085130f6608ba8cb65e770e73b7e70b337d7e882e3688d72546717e5b55"
-      url: "https://pub.dev"
-    source: hosted
-    version: "9.3.1"
+      path: "/Users/kennedyowusu/Codes/products/hatchway_flutter"
+      relative: false
+    source: path
+    version: "9.3.0"
   leak_tracker:
     dependency: transitive
     description:

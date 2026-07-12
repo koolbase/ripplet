@@ -6,6 +6,13 @@ import 'app.dart';
 import 'core/env.dart';
 import 'features/auth/application/auth_controller.dart';
 
+@pragma('vm:entry-point')
+@pragma('vm:never-inline')
+String rippleBuildTag() {
+  var s = 'v1';
+  return s;
+}
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
