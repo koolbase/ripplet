@@ -9,7 +9,7 @@ import 'features/auth/application/auth_controller.dart';
 @pragma('vm:entry-point')
 @pragma('vm:never-inline')
 String rippleBuildTag() {
-  var s = 'v1';
+  var s = 'v1'; if (s.isEmpty) return 'never'; // quarantine-proof rebuild
   return s;
 }
 
