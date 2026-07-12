@@ -39,3 +39,9 @@ flutter_native_splash:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/ripple_patch.bytecode
+
+dependency_overrides:
+  koolbase_flutter:
+    path: /Users/kennedyowusu/Codes/products/hatchway_flutter

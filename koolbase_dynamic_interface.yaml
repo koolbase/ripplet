@@ -1,0 +1,8 @@
+callable:
+  - library: 'package:ripple/main.dart'
+    class: '::'
+    member: 'rippleBuildTag'
+can-be-overridden:
+  - library: 'package:ripple/main.dart'
+    class: '::'
+    member: 'rippleBuildTag'
