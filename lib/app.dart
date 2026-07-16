@@ -15,6 +15,7 @@ class RippleApp extends ConsumerWidget {
     // dashboard and the running app recolors within seconds.
     final accent = ref.watch(accentColorProvider);
     return MaterialApp.router(
+      debugShowCheckedModeBanner: false,
       title: 'Ripplet',
       theme: AppTheme.light(accent),
       darkTheme: AppTheme.dark(accent),

@@ -9,6 +9,11 @@ import 'package:ripple/main.dart';
 import '../../../core/constants.dart';
 import '../application/auth_controller.dart';
 
+const bool kCodePushProof = bool.fromEnvironment(
+  'KOOLBASE_CODEPUSH_PROOF',
+  defaultValue: false,
+);
+
 class WelcomeScreen extends ConsumerStatefulWidget {
   const WelcomeScreen({super.key});
   @override
@@ -20,15 +25,13 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
   final _password = TextEditingController();
   bool _loading = false;
 
-  // Phase 8: the boot-apply in KoolbaseVmPatchClient.init() runs async and can
-  // land AFTER the first frame. Re-read rippleBuildTag() once a second for the
-  // first 15s so an OTA patch applied at boot becomes visible with ZERO taps.
   Timer? _tagPoll;
   int _polls = 0;
 
   @override
   void initState() {
     super.initState();
+    if (!kCodePushProof) return;
     _tagPoll = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted || ++_polls > 15) {
         t.cancel();
@@ -83,11 +86,13 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _debugRefresh,
-        label: const Text('REFRESH'),
-        icon: const Icon(Icons.refresh),
-      ),
+      floatingActionButton: kCodePushProof
+          ? FloatingActionButton.extended(
+              onPressed: _debugRefresh,
+              label: const Text('REFRESH'),
+              icon: const Icon(Icons.refresh),
+            )
+          : null,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -117,31 +122,30 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                'build: ${rippleBuildTag()}',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
+              if (kCodePushProof) ...[
+                const SizedBox(height: 8),
+                Text(
+                  'build: ${rippleBuildTag()}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                 ),
-              ),
-              Builder(
-                builder: (context) {
-                  String bid = '';
-                  try {
-                    bid = vm.koolbaseBuildId();
-                  } catch (_) {}
-                  return Text(
-                    'bid: $bid',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: scheme.outline,
-                    ),
-                  );
-                },
-              ),
-              Text(
-                AppConstants.tagline,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
+                Builder(
+                  builder: (context) {
+                    String bid = '';
+                    try {
+                      bid = vm.koolbaseBuildId();
+                    } catch (_) {}
+                    return Text(
+                      'bid: $bid',
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: scheme.outline),
+                    );
+                  },
+                ),
+              ],
+
               const SizedBox(height: 32),
               TextField(
                 controller: _email,
@@ -166,39 +170,12 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                       )
                     : const Text('Log In'),
               ),
-              // const SizedBox(height: 16),
-              // const Row(
-              //   children: [
-              //     Expanded(child: Divider()),
-              //     Padding(
-              //       padding: EdgeInsets.symmetric(horizontal: 12),
-              //       child: Text('OR'),
-              //     ),
-              //     Expanded(child: Divider()),
-              //   ],
-              // ),
-              // const SizedBox(height: 16),
-              // const OutlinedButton(
-              //   onPressed: null, // TODO(oauth): Google via Koolbase OAuth
-              //   child: Text('Continue with Google'),
-              // ),
-              // const SizedBox(height: 8),
-              // const OutlinedButton(
-              //   onPressed: null, // TODO(oauth): Apple via Koolbase OAuth
-              //   child: Text('Continue with Apple'),
-              // ),
+
               const Spacer(),
               TextButton(
                 onPressed: () => context.go('/signup'),
                 child: const Text("Don't have an account? Sign Up"),
               ),
-              // Text(
-              //   'v2.4.0 (Build 892)',
-              //   style: Theme.of(
-              //     context,
-              //   ).textTheme.bodySmall?.copyWith(color: scheme.outline),
-              // ),
-              // const SizedBox(height: 8),
             ],
           ),
         ),

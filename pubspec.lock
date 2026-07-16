@@ -510,7 +510,7 @@ packages:
       path: "/Users/kennedyowusu/Codes/products/hatchway_flutter"
       relative: false
     source: path
-    version: "9.3.0"
+    version: "9.4.0"
   leak_tracker:
     dependency: transitive
     description:
