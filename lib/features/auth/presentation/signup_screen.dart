@@ -1,9 +1,11 @@
 import 'dart:io';
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../profile/application/profile_providers.dart';
 import '../../profile/data/profile_repository.dart';
@@ -26,8 +28,28 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   File? _avatar;
   bool _loading = false;
 
+  // Guideline 1.2: users must agree to terms stating zero tolerance for
+  // objectionable content or abusive users BEFORE an account is created.
+  bool _acceptedTerms = false;
+
+  late final TapGestureRecognizer _termsTap = TapGestureRecognizer()
+    ..onTap = () => _openUrl('https://koolbase.com/ripplet/terms');
+  late final TapGestureRecognizer _privacyTap = TapGestureRecognizer()
+    ..onTap = () => _openUrl('https://koolbase.com/ripplet/privacy');
+
+  Future<void> _openUrl(String url) async {
+    if (!await launchUrl(
+      Uri.parse(url),
+      mode: LaunchMode.externalApplication,
+    )) {
+      if (mounted) _fail('Could not open $url');
+    }
+  }
+
   @override
   void dispose() {
+    _termsTap.dispose();
+    _privacyTap.dispose();
     _email.dispose();
     _password.dispose();
     _displayName.dispose();
@@ -56,6 +78,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     final displayName = _displayName.text.trim();
     if (username.isEmpty || displayName.isEmpty) {
       _fail('Please fill in display name and username.');
+      return;
+    }
+    if (!widget.completeMode && !_acceptedTerms) {
+      _fail('Please agree to the Terms of Service to continue.');
       return;
     }
 
@@ -191,8 +217,59 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               ),
             ),
             const SizedBox(height: 24),
+            // Guideline 1.2 — terms agreement gate. Shown only on true
+            // signup; completeMode is an existing account finishing its
+            // profile (terms already accepted at registration).
+            if (!widget.completeMode)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Checkbox(
+                    value: _acceptedTerms,
+                    onChanged: (v) =>
+                        setState(() => _acceptedTerms = v ?? false),
+                  ),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 12),
+                      child: RichText(
+                        text: TextSpan(
+                          style: Theme.of(context).textTheme.bodySmall,
+                          children: [
+                            const TextSpan(text: 'I agree to the '),
+                            TextSpan(
+                              text: 'Terms of Service',
+                              style: TextStyle(
+                                color: scheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              recognizer: _termsTap,
+                            ),
+                            const TextSpan(text: ' and '),
+                            TextSpan(
+                              text: 'Privacy Policy',
+                              style: TextStyle(
+                                color: scheme.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              recognizer: _privacyTap,
+                            ),
+                            const TextSpan(
+                              text:
+                                  '. Ripplet has zero tolerance for objectionable content or abusive users.',
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            const SizedBox(height: 12),
             FilledButton(
-              onPressed: _loading ? null : _continue,
+              onPressed: (_loading || (!widget.completeMode && !_acceptedTerms))
+                  ? null
+                  : _continue,
               child: _loading
                   ? const SizedBox(
                       width: 20,

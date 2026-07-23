@@ -15,7 +15,8 @@ dependencies:
   cached_network_image: ^3.3.1
   intl: ^0.19.0
   async: ^2.11.0
-  koolbase_flutter: ^9.3.1
+  koolbase_flutter: ^9.4.1
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:
@@ -39,7 +40,3 @@ flutter_native_splash:
 
 flutter:
   uses-material-design: true
-
-dependency_overrides:
-  koolbase_flutter:
-    path: /Users/kennedyowusu/Codes/products/hatchway_flutter
